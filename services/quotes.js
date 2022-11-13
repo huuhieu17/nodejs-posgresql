@@ -1,26 +1,27 @@
 const db = require('./db');
 const helper = require('../helper');
-const config = require('../config');
 
-async function getMultiple(page = 1) {
-  const offset = helper.getOffset(page, config.listPerPage);
+async function getMultiple(page = 1, size = 5) {
+  const offset = helper.getOffset(page, size);
   const rows = await db.query(
     'SELECT id, quote, author FROM quote OFFSET $1 LIMIT $2', 
-    [offset, config.listPerPage]
+    [offset, size]
   );
+  const count = await db.query('SELECT count(*) from quote LIMIT 1');
+  const totalRecord = count[0].count;
   const data = helper.emptyOrRows(rows);
   const meta = {page};
 
   return {
     data,
-    meta
+    meta,
+    totalRecord
   }
 }
 
 function validateCreate(quote) {
   let messages = [];
 
-  console.log(quote);
 
   if (!quote) {
     messages.push('No object is provided');
